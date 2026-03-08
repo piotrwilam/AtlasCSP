@@ -59,7 +59,14 @@ def save_atlas_hdf5(path: str, pair_masks: dict, universal_masks: dict,
 def load_atlas_hdf5(path: str) -> dict:
     """Load atlas from HDF5, return all components."""
     atlas = h5py.File(path, "r")
+    # Load both attrs and dataset-stored metadata
     meta = dict(atlas["metadata"].attrs)
+    if "metadata" in atlas:
+        for key in atlas["metadata"]:
+            obj = atlas[f"metadata/{key}"]
+            if isinstance(obj, h5py.Dataset):
+                data = obj[:]
+                meta[key] = [x.decode() if isinstance(x, bytes) else x for x in data]
 
     pair_masks = {}
     if "pair_masks" in atlas:
