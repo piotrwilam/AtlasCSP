@@ -16,7 +16,7 @@ class PairRepresentationBuilder:
     """
 
     def __init__(self, epsilon: float, consistency_threshold: float, n_layers: int,
-                 batch_size: int = 16):
+                 batch_size: int = 64):
         self.epsilon = epsilon
         self.consistency_threshold = consistency_threshold
         self.n_layers = n_layers
