@@ -49,7 +49,7 @@ def save_atlas_hdf5(path: str, pair_masks: dict, universal_masks: dict,
         md = f.create_group("metadata")
         for key, val in metadata.items():
             if isinstance(val, list):
-                md.create_dataset(key, data=np.array(val, dtype=h5py.special_dtype(vlen=str)))
+                md.create_dataset(key, data=np.array(val, dtype=h5py.string_dtype()))
             else:
                 md.attrs[key] = val
 
