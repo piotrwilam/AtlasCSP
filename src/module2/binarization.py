@@ -15,10 +15,12 @@ class PairRepresentationBuilder:
     Never hold more than one prompt's activations in memory at a time.
     """
 
-    def __init__(self, epsilon: float, consistency_threshold: float, n_layers: int):
+    def __init__(self, epsilon: float, consistency_threshold: float, n_layers: int,
+                 batch_size: int = 16):
         self.epsilon = epsilon
         self.consistency_threshold = consistency_threshold
         self.n_layers = n_layers
+        self.batch_size = batch_size
 
     def build(self, extractor, prompts: list) -> dict:
         """
@@ -35,17 +37,16 @@ class PairRepresentationBuilder:
         N = len(prompts)
         sums = {}  # layer_id -> int array (running sum of binary activations)
 
-        for prompt in prompts:
-            acts = extractor.extract(prompt)
-            for lid, vec in acts.items():
-                # Step A: Soft binarization — |activation| > epsilon -> 1
-                binary = (vec.abs() > self.epsilon).numpy().astype(np.int32)
-                if lid not in sums:
-                    sums[lid] = np.zeros_like(binary)
-                sums[lid] += binary
-            # Memory cleanup after each prompt
-            del acts
-            torch.cuda.empty_cache()
+        for i in range(0, N, self.batch_size):
+            batch = prompts[i:i + self.batch_size]
+            batch_acts = extractor.extract_batch(batch)
+            for acts in batch_acts:
+                for lid, vec in acts.items():
+                    binary = (vec.abs() > self.epsilon).numpy().astype(np.int32)
+                    if lid not in sums:
+                        sums[lid] = np.zeros_like(binary)
+                    sums[lid] += binary
+            del batch_acts
 
         # Step B + C: Consistency score -> hard mask
         pair_masks = {}

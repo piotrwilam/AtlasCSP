@@ -64,6 +64,48 @@ class ActivationExtractor:
             h.remove()
         self.hooks = []
 
+    def extract_batch(self, prompts: list, token_pos: int = -1) -> list:
+        """
+        Run a single batched forward pass, return per-prompt activations.
+
+        Args:
+            prompts: list of code strings
+            token_pos: which token to extract from (-1 = last non-pad token)
+
+        Returns:
+            list[dict[int, torch.Tensor]]: one dict per prompt
+            Each tensor is shape [n_neurons] (1D)
+        """
+        encoded = self.tokenizer(
+            prompts, return_tensors="pt", padding=True,
+            truncation=True, add_special_tokens=False,
+        ).to(self.device)
+        input_ids = encoded["input_ids"]
+        attention_mask = encoded["attention_mask"]
+        batch_size = input_ids.shape[0]
+
+        # Find last non-pad position per sequence
+        if token_pos == -1:
+            seq_lengths = attention_mask.sum(dim=1)  # [batch]
+            last_positions = seq_lengths - 1          # 0-indexed
+        else:
+            last_positions = torch.full((batch_size,), token_pos, device=self.device)
+
+        self.activations = {}
+        with torch.no_grad():
+            self.model(input_ids)
+
+        results = []
+        for b in range(batch_size):
+            pos = last_positions[b].item()
+            result = {}
+            for lid, act in self.activations.items():
+                result[lid] = act[b, pos, :].cpu()
+            results.append(result)
+
+        self.activations = {}
+        return results
+
     def extract(self, prompt_text: str, token_pos: int = -1) -> dict:
         """
         Run a single forward pass, return activations at all layers.
