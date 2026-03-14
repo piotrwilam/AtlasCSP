@@ -112,6 +112,102 @@ def load_atlas_hdf5(path: str) -> dict:
     }
 
 
+def save_activations_hdf5(path: str, pair_activations: dict, metadata: dict):
+    """
+    Save raw activation statistics to HDF5.
+
+    Schema:
+        /activations/layer_{lid}/{ast}__{blt}   float32 [n_neurons] (sum of |act|)
+        /firing_counts/layer_{lid}/{ast}__{blt}  int32   [n_neurons]
+        /n_prompts/{ast}__{blt}                  scalar int
+        /metadata/                               attrs + datasets
+    """
+    with h5py.File(path, "w") as f:
+        ag = f.create_group("activations")
+        fg = f.create_group("firing_counts")
+        ng = f.create_group("n_prompts")
+
+        for (ast_n, blt_o), raw in pair_activations.items():
+            pair_key = f"{ast_n}__{blt_o}"
+            ng.create_dataset(pair_key, data=raw["n_prompts"])
+
+            for lid, layer_data in raw["layers"].items():
+                ag.create_dataset(
+                    f"layer_{lid}/{pair_key}",
+                    data=layer_data["activation_sum"],
+                    compression="gzip",
+                )
+                fg.create_dataset(
+                    f"layer_{lid}/{pair_key}",
+                    data=layer_data["firing_count"],
+                    compression="gzip",
+                )
+
+        md = f.create_group("metadata")
+        for key, val in metadata.items():
+            if isinstance(val, list):
+                md.create_dataset(key, data=np.array(val, dtype=h5py.string_dtype()))
+            else:
+                md.attrs[key] = val
+
+    logger.info(f"Activations saved: {path}")
+
+
+def load_activations_hdf5(path: str) -> dict:
+    """
+    Load raw activation statistics from HDF5.
+
+    Returns:
+        {
+            "pair_activations": {
+                (ast_n, blt_o): {
+                    "n_prompts": int,
+                    "layers": {lid: {"activation_sum": arr, "firing_count": arr}}
+                }
+            },
+            "metadata": dict,
+        }
+    """
+    with h5py.File(path, "r") as f:
+        meta = dict(f["metadata"].attrs)
+        for key in f["metadata"]:
+            obj = f[f"metadata/{key}"]
+            if isinstance(obj, h5py.Dataset):
+                data = obj[:]
+                meta[key] = [x.decode() if isinstance(x, bytes) else x for x in data]
+
+        pair_activations = {}
+
+        # Read n_prompts
+        n_prompts_map = {}
+        for pair_key in f["n_prompts"]:
+            n_prompts_map[pair_key] = int(f[f"n_prompts/{pair_key}"][()])
+
+        # Read activations and firing counts
+        for layer_key in f["activations"]:
+            lid = int(layer_key.split("_")[1])
+            for pair_key in f[f"activations/{layer_key}"]:
+                parts = pair_key.split("__", 1)
+                if len(parts) != 2:
+                    continue
+                ast_n, blt_o = parts
+                key = (ast_n, blt_o)
+
+                if key not in pair_activations:
+                    pair_activations[key] = {
+                        "n_prompts": n_prompts_map.get(pair_key, 0),
+                        "layers": {},
+                    }
+
+                pair_activations[key]["layers"][lid] = {
+                    "activation_sum": f[f"activations/{layer_key}/{pair_key}"][:],
+                    "firing_count": f[f"firing_counts/{layer_key}/{pair_key}"][:],
+                }
+
+    logger.info(f"Loaded activations: {len(pair_activations)} pairs")
+    return {"pair_activations": pair_activations, "metadata": meta}
+
+
 def save_checkpoint(path: str, pair_masks: dict, pairs_processed: int):
     """Incremental checkpoint for long runs using pickle."""
     with open(path, "wb") as f:
