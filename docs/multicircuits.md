@@ -91,7 +91,8 @@ All four groups pass Stage 1 at all three epsilon values — elevated intra-grou
 | **B: Exceptions** | PASS (3 layers) | PASS (8 layers) | PASS (8 layers) | **STRONG MULTICIRCUIT** |
 | **C: Raise+Errors** | PASS (3 layers) | PASS (3 layers) | PASS (5 layers) | **GENUINE MULTICIRCUIT** |
 | **A: Generic AST** | PASS (1 layer) | PASS (2 layers) | PASS (6 layers) | **WEAK MULTICIRCUIT** |
-| **D: Control flow** | PASS (2 layers) | FAIL | FAIL | **NOT A MULTICIRCUIT** |
+| **D: Control flow** (full 13) | PASS (2 layers) | FAIL | FAIL | **NOT A MULTICIRCUIT** |
+| **D': Control flow** (pruned 7) | — | — | PASS (3 layers) | **SUBGROUP FOUND at ε=0.05** |
 
 ## Findings
 
@@ -112,21 +113,35 @@ While, Raise, and four abstract exception types (ArithmeticError, ImportError, L
 
 This suggests the group has both strong-firing shared neurons (visible at high epsilon) and weaker consistent neurons (visible at low epsilon), distributed across different layers.
 
-### A: Generic AST — Weak Multicircuit
+### A: Generic AST — Weak Multicircuit (refinable to 18 members)
 
 19 circuits that appeared identical at Layer 5 (ε=0.5). At lower epsilon values, the group does share neurons significantly, but weakly — the shared signal only emerges when the activation threshold is low enough to include subtle activations.
 
 At ε=0.05: significant at 6/8 layers. At ε=0.1: only 2/8. At ε=0.5: only 1/8.
 
-Interpretation: these circuits share a common low-amplitude "scaffolding" signal — neurons that fire weakly for any structured Python construct. This is a real shared substrate but not a strong functional module. The group is semantically incoherent (ClassDef, Lambda, zip, isinstance have nothing in common functionally).
+**Leave-one-out refinement:** `AST:Dict` is a consistent outlier — removing it improves group cohesion at all three epsilon values (delta +0.005 to +0.015). After dropping Dict:
+- ε=0.1: group jumps from 2 to **3 significant layers** (J=0.54)
+- ε=0.05: group jumps from 5 to **7 significant layers** (J=0.52)
 
-### D: Control flow — Not a Multicircuit
+The refined 18-member group (without Dict) is a **genuine weak multicircuit** at low epsilon. These circuits share a common low-amplitude "scaffolding" signal — neurons that fire weakly for any structured Python construct. The group is semantically incoherent (ClassDef, Lambda, zip, isinstance have nothing in common functionally), suggesting this shared substrate represents generic "structured code" processing rather than a specific functional concept.
 
-13 AST nodes (For, If, Try, FunctionDef, Break, etc.) that appeared to cluster at ε=0.5. At ε=0.1 and ε=0.05, the group is **not more similar than random** at any layer (0 significant layers at both thresholds).
+### D: Control flow — Not a Multicircuit (but contains a genuine subgroup)
 
-The apparent clustering at ε=0.5 was an artifact of sparse signal — with only 5 selective neurons at Layer 5, many circuits collapsed into identical masks by chance. When more neurons are available at lower epsilon, these circuits differentiate and the group dissolves.
+13 AST nodes (For, If, Try, FunctionDef, Break, etc.) that appeared to cluster at ε=0.5. As a full group, it **fails at both ε=0.1 and ε=0.05** — not more similar than random at any layer.
 
-This group should be investigated for genuine subgroups via leave-one-out analysis (notebook 4B, cells 9–10).
+**Leave-one-out analysis** reveals `AST:ImportFrom` and `AST:Break` are the worst outliers across all epsilon values (delta +0.02–0.03 each).
+
+**Iterative pruning** finds a genuine subgroup inside:
+
+| Epsilon | Pruned to | Members | Sig layers | Mean J |
+|---------|-----------|---------|------------|--------|
+| ε=0.5 | 3 | For, AsyncFor, Nonlocal | 2 | 0.42 |
+| ε=0.1 | 3 | ExceptHandler, For, Try | 2 | 0.63 |
+| ε=0.05 | **7** | **AsyncFor, AsyncFunctionDef, ExceptHandler, For, If, IfExp, Try** | **3** | **0.54** |
+
+At ε=0.05, a 7-member subgroup converges: the core control flow constructs (For, AsyncFor, If, IfExp, Try, ExceptHandler) plus AsyncFunctionDef. This group achieves significance at 3 layers after dropping ImportFrom, Break, Starred, Global, Nonlocal, and FunctionDef.
+
+The consistent members across epsilons are **For** and **Try/ExceptHandler** — the model does share some neural substrate between loop and exception control flow, but only among the core constructs. Peripheral members (ImportFrom, Global, Nonlocal, Starred, Break) are not part of this shared processing.
 
 ## Verdict Criteria
 
