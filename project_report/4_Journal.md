@@ -20,11 +20,11 @@ This pitch defined the project's DNA: using mechanistic interpretability tools (
 
 ## Phase 1: Probing Internal States
 
-Phase 1 translated the Neural Masquerading pitch into concrete experiments. Rather than jumping directly to deception detection, the team first needed to establish that internal ethical/safety signals could be reliably extracted from model activations at all.
+Phase 1 translated the Neural Masquerading pitch into concrete experiments. Rather than jumping directly to deception detection, the team first needed to establish that internal ethical/safety signals could be reliably extracted from model activations at all. Work was distributed across the team as documented in the progress reports (06-02, 20-02, 06-03).
 
 ---
 
-### Experiment 1: Neurofeedback on Qwen 0.5B
+### Experiment 1: Neurofeedback on Qwen 0.5B (Piotr)
 
 **Hypothesis:** A language model's internal ethical judgment about a scenario can be detected via linear probing of hidden states *before* the model finishes generating text. The model already "knows" its verdict internally — we just need to train it to surface that signal through a specific token channel.
 
@@ -51,7 +51,7 @@ Phase 1 translated the Neural Masquerading pitch into concrete experiments. Rath
 
 ---
 
-### Experiment 2: Scaling to Qwen 1.5B
+### Experiment 2: Scaling to Qwen 1.5B (Piotr)
 
 **Hypothesis:** Scaling from 0.5B to 1.5B parameters improves the separability of ethical judgment signals and shifts the critical layer deeper into the network.
 
@@ -76,7 +76,71 @@ Phase 1 translated the Neural Masquerading pitch into concrete experiments. Rath
 
 ---
 
-### Experiment 3: Security Circuit Probing on CSP Transformer
+### Experiment 2b: Vignesh's MLP Classifiers Across Layers (Vignesh)
+
+**Hypothesis:** MLP classifiers trained iteratively through all layers of model output can classify activations into ethical/unethical categories, revealing at which layer the ethical signal is strongest.
+
+**Architecture:** MLP classifiers trained per layer on activation outputs from the Qwen models, classifying ethical vs. unethical based on ETHICS dataset labels.
+
+**Results:** Achieved 70% accuracy. The per-layer results showed that classification performance varies across depth.
+
+**Conclusions:** Confirmed that ethical signals are present in internal activations and localizable to specific layers, independently validating the probing approach.
+
+**Reference:** 20-02 Progress Report
+
+---
+
+### Experiment 2c: Matt's PCA Discovery (Matt)
+
+**Hypothesis:** PCA analysis of activations across all layers reveals how ethical decisions evolve through the network.
+
+**Architecture:** Plotted activations for all layers against top 3 PCAs of the penultimate layer.
+
+**Results:** Discovered that decisions are effectively made in the first layer and that activations simply disperse through subsequent layers, solidifying initial decisions.
+
+**Conclusions:** This was a surprising finding — it suggested that the model's "decision" about ethical content is largely set early, with later layers refining rather than fundamentally changing it. This contrasted with the probing results showing peak accuracy at middle layers, suggesting that *separability* and *decision-making* may occur at different depths.
+
+**Reference:** 20-02 Progress Report
+
+---
+
+### Experiment 2d: Efe's Probing on Sparse Model (Efe)
+
+**Hypothesis:** Internal layers of the weight-sparse CSP model capture ethical values, detectable via probes after MLP and Attention layers.
+
+**Architecture:** Trained probes after MLP and Attention layers of the OpenAI circuit-sparsity model on ETHICS-derived data.
+
+**Results:** No internal layers captured ethical values — the sparse model does not encode ethical judgment in a probe-accessible way.
+
+**Conclusions:** Important negative result. The weight-sparse architecture, while excellent for code-level circuit analysis, does not internalize ethical concepts the way dense models do. This steered the project toward using the sparse model for *code structure* analysis rather than *ethical judgment* detection.
+
+**Reference:** 20-02 Progress Report; [Efe's literature review](https://docs.google.com/document/d/1sn2eGEoBcA6ukZEBCFPklYmdZ2P_bAHsiw_Zt5fl2nQ/edit?tab=t.0)
+
+---
+
+### Experiment 2e: Asha's Sparse Model Neurofeedback (Asha)
+
+**Hypothesis:** The neurofeedback approach (fine-tuning to surface internal signals) works on weight-sparse models as well as dense ones.
+
+**Results:** Sparsity led to a lack of ability to produce neurofeedback — the sparse model could not be trained to report its internal state through the neurofeedback channel.
+
+**Conclusions:** Another important negative result confirming that the sparse model's architecture is fundamentally different from dense models for this kind of probing. Reinforced the pivot toward using the sparse model for structural circuit analysis.
+
+**Reference:** 20-02 Progress Report
+
+---
+
+### Experiment 2f: Sparse Model Capability Test (Efe)
+
+**Discovery:** The CSP sparse model cannot even correctly complete simple code like `def multiply(x,y):` — its generation capabilities are severely limited.
+
+**Conclusions:** The model is useful for *understanding* code (activations encode meaningful structure) but not for *generating* it. This set expectations for the CSP-Atlas work: we analyze what the model encodes, not what it produces.
+
+**Reference:** 06-03 Progress Report
+
+---
+
+### Experiment 3: Security Circuit Probing on CSP Transformer (Piotr)
 
 **Hypothesis:** The CSP (circuit-sparsity) transformer, a weight-sparse GPT trained on Python code, contains localizable circuits that distinguish secure from insecure code patterns.
 
@@ -100,7 +164,7 @@ Phase 1 translated the Neural Masquerading pitch into concrete experiments. Rath
 
 ---
 
-### Experiment 4: Ablation Sweep — Are the Circuits Compact?
+### Experiment 4: Ablation Sweep — Are the Circuits Compact? (Piotr)
 
 **Hypothesis:** A small set of neurons (~20) carries most of the security signal. Ablating these neurons should drop probe accuracy to chance level (~50%), while ablating fewer should have minimal effect.
 
@@ -130,7 +194,21 @@ Between Phase 1 and Phase 2, several theoretical proposals were developed that i
 
 ---
 
-### Proposal: STATNLP-FFS — Finding Feature Strands
+### Team convergence (late Feb, after meeting with Karen)
+
+After the 06-03 meeting with Karen, the team discussed and synthesized the various experimental directions. Efe's idea of combining Piotr's ablation approach with circuit topology analysis became the central direction. The goal crystallized into identifying three types of circuit structure:
+
+1. **Feature-specific neurons** — small sets responsible for a single feature
+2. **Hub neurons** — shared across multiple features
+3. **Ablation and steering** — identifying directions in activation space that influence generation (building on Vignesh's finding of prior steering work)
+
+Piotr and Efe refined two complementary plans: circuit topology mapping and ablation-based behavior steering. These became the foundation for CSP-Atlas.
+
+**Reference:** 06-03 Progress Report; [Multi-thread document](https://docs.google.com/document/d/1NobR1gUdB3SSshw0aJRPCw9ybtRaOK6D3PgcFAJZ0hc/edit?usp=sharing)
+
+---
+
+### Proposal: STATNLP-FFS — Finding Feature Strands (Piotr + Efe)
 
 **Discovery topic:** Feature strands — syntax-level behaviors that remain active across multiple layers, forming wire-like circuits in sparse transformers.
 
@@ -142,13 +220,13 @@ Three methods were proposed:
 
 3. **Low Rank Residual Direction** — Find a single direction **v** in residual space that represents a feature: **v** = mean(**h_feature**) - mean(**h_not_feature**). This could enable model steering: **h_new** = **h** + α × **v**.
 
-These proposals were not executed as standalone experiments but directly influenced CSP-Atlas's design — particularly the idea that circuits for specific Python concepts can be isolated and characterized.
+These proposals were not executed as standalone experiments but directly influenced CSP-Atlas's design — particularly the idea that circuits for specific Python concepts can be isolated and characterized. Vignesh concurrently proposed using automated circuit discovery (Conmy et al., 2023).
 
-**Reference:** [archive.md](../docs/archive.md), STATNLP-FFS section
+**Reference:** [archive.md](../docs/archive.md); [Ablation literature review](https://docs.google.com/document/d/1OA5YawEelKwvi_eblhHAJq2iRgsdsqvS9a_XlyJuP9M/edit?usp=sharing)
 
 ---
 
-### Exploratory Work: Matt's Analysis (Week of Feb 6–8)
+### Exploratory Work: Matt's Analysis (Matt, week of Feb 6–8)
 
 **Discovery topic:** Category-specific activation geometries in the CSP transformer.
 
@@ -161,7 +239,11 @@ These proposals were not executed as standalone experiments but directly influen
 
 **Key observation:** Category-specific activation geometries exist — class/def are adjacent but distinct in UMAP space; data=/buf= are far apart. This was early evidence that the CSP transformer organizes Python concepts geometrically, which CSP-Atlas later confirmed systematically.
 
-**Reference:** [archive.md](../docs/archive.md), Matt's analysis section
+Matt also explored PCA of ETHICS vs. Reddit data, showing clear cluster separation, and proposed the question: "Is it Code? or Is it Cake?" — exploring whether the model's internal representation of code vs. natural language is geometrically separable.
+
+**Dataset research (Matt + Efe):** Surveyed BugsInPy, QuixBugs, DiverseVul, HumanEval, and LeetCode datasets for suitability as code analysis benchmarks.
+
+**Reference:** [archive.md](../docs/archive.md); 06-03 Progress Report
 
 ---
 
@@ -179,7 +261,7 @@ The CSP-Atlas project developed a systematic pipeline: generate controlled promp
 
 **Architecture and results:** 43 AST nodes × 63 builtins → 1,276 pairs × 50 prompts = 63,800 total prompts. All prompts AST-verified, quality-filtered by sequence loss.
 
-**Conclusion:** The controlled variance approach successfully produced a dataset suitable for circuit extraction. See [2_Findings.md](2_Findings.md), Section 2.
+**Conclusion:** The controlled variance approach successfully produced a dataset suitable for circuit extraction. See [2_Final_Report_Draft.md](2_Final_Report_Draft.md), Section 2.
 
 ---
 
@@ -187,27 +269,35 @@ The CSP-Atlas project developed a systematic pipeline: generate controlled promp
 
 The core CSP-Atlas experiments — extraction, binarization, marginalization, evaluation, and modularity scoring — are documented in detail in the findings and current research documents:
 
-- **Universal circuit extraction and genuineness** → [2_Findings.md](2_Findings.md), Finding 1
-- **Modularity and the AST/builtin asymmetry** → [2_Findings.md](2_Findings.md), Finding 2
-- **Layer architecture and the inverted-U pattern** → [2_Findings.md](2_Findings.md), Finding 3
-- **Compositionality and the Entanglement Index** → [2_Findings.md](2_Findings.md), Finding 4
+- **Universal circuit extraction and genuineness** → [2_Final_Report_Draft.md](2_Final_Report_Draft.md), Finding 1
+- **Modularity and the AST/builtin asymmetry** → [2_Final_Report_Draft.md](2_Final_Report_Draft.md), Finding 2
+- **Layer architecture and the inverted-U pattern** → [2_Final_Report_Draft.md](2_Final_Report_Draft.md), Finding 3
+- **Compositionality and the Entanglement Index** → [2_Final_Report_Draft.md](2_Final_Report_Draft.md), Finding 4
 - **Active research (ablation, SAE, analytical tools, visualizations, thresholds)** → [3_Current.md](3_Current.md)
 
 ---
 
 ## Summary Timeline
 
-| Date | Experiment | Key Result |
-|------|-----------|------------|
-| ~Feb 6–8 | Matt's analysis (logit lens, UMAP) | Category-specific geometries in CSP |
-| ~Feb 13–15 | NLP03 Exp 1: Neurofeedback on Qwen 0.5B | Pipeline validated, signal exists |
-| ~Feb 15–16 | NLP03 Exp 3: Neurofeedback on Qwen 1.5B | 86.25% MLP probe at layer 20 |
-| ~Feb 17 | CSP-Ablation Phase 1: Probing | 87% linear probe at layer 4 |
-| ~Feb 21 | CSP-Ablation Phase 2: Ablation sweep | ~20 neurons carry security signal |
-| Late Feb | STATNLP-FFS proposals | Theoretical framework for feature strands |
-| Mar 2026 | CSP-Atlas Module 1 | 63,800 prompts generated |
-| Mar 2026 | CSP-Atlas Module 2 | 43 AST + 63 builtin universal circuits extracted |
-| Mar 2026 | CSP-Atlas evaluation | Findings 1–4 established |
+| Date | Experiment | Who | Key Result |
+|------|-----------|-----|------------|
+| ~Feb 6 | Progress report: papers narrowed | Team | Converged on metacognition + sparse models |
+| ~Feb 6–8 | Activation geometry analysis | Matt | Category-specific geometries in CSP |
+| ~Feb 13–15 | Neurofeedback on Qwen 0.5B | Piotr | Pipeline validated, signal exists |
+| ~Feb 15–16 | Neurofeedback on Qwen 1.5B | Piotr | 86.25% MLP probe at layer 20 |
+| ~Feb 15–16 | MLP classifiers across layers | Vignesh | 70% accuracy on ethical classification |
+| ~Feb 15–16 | PCA of penultimate layer | Matt | Decisions made in first layer |
+| ~Feb 17 | CSP probing (MLP + Attn layers) | Efe | No ethical signal in sparse model (negative) |
+| ~Feb 17 | Sparse model neurofeedback | Asha | Sparsity blocks neurofeedback (negative) |
+| ~Feb 17 | CSP-Ablation Phase 1: Probing | Piotr | 87% linear probe at layer 4 |
+| ~Feb 20 | Progress report: experiments | Team | Distributed workload, narrowing direction |
+| ~Feb 21 | CSP-Ablation Phase 2: Ablation | Piotr | ~20 neurons carry security signal |
+| Late Feb | Team convergence after Karen meeting | Team | Topology + ablation direction agreed |
+| Late Feb | STATNLP-FFS proposals | Piotr + Efe | Feature strands framework |
+| ~Mar 6 | Progress report: sparse model focus | Team | Confirmed CSP-Atlas direction |
+| Mar 2026 | CSP-Atlas Module 1 | Piotr | 63,800 prompts generated |
+| Mar 2026 | CSP-Atlas Module 2 | Piotr | 43 AST + 63 builtin universals extracted |
+| Mar 2026 | CSP-Atlas evaluation | Piotr | Findings 1–4 established |
 
 ---
 

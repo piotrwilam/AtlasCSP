@@ -4,14 +4,22 @@ Active areas of investigation. The purpose of this work is understanding univers
 
 ## Research experiments
 
-1. **Ablation studies** — Prove that identified neurons are essential for universal circuits by selectively disabling them and measuring the impact on model behavior.
+1. **Ablation studies** (Piotr) — Prove that identified neurons are essential for universal circuits by selectively disabling them and measuring the impact on model behavior. Extends the CSP-Ablation-Project work from security circuits to universal circuits.
 
-2. **Causal path analysis and SAE** — Sparse Autoencoder-based investigation of causal pathways through the transformer (Vignesh's observations).
+2. **Causal path analysis and SAE** (Vignesh) — Sparse Autoencoder-based investigation of causal pathways through the transformer. Building on Vignesh's earlier observations about model behavior steering and automated circuit discovery (Conmy et al., 2023).
 
-3. **Analytical tools X01–X06** — Efe's toolset for structured analysis of universal circuit properties.
+3. **Analytical tools X01–X06** (Efe) — Efe's toolset for structured analysis of universal circuit properties. Extends the probing and literature review work into systematic analytical tooling.
 
-4. **Circuit graph visualizations** — Representing circuits as graphs within the transformer architecture to reveal connectivity and information flow patterns.
+4. **Circuit graph visualizations** — Representing circuits as graphs within the transformer architecture to reveal connectivity and information flow patterns. Related to the STATNLP-FFS high betweenness proposal.
 
 5. **Neuron activity threshold exploration** — Testing different thresholds for neuron activity during activation extraction to understand sensitivity and robustness of circuit definitions.
 
-6. **Literature review** — Compile a bibliography of up to 10 key papers covering mechanistic interpretability, circuit discovery in transformers, sparse autoencoders, and code understanding models. The review should contextualize the CSP-Atlas findings within the broader field.
+6. **Literature review** (Efe + Asha) — Compile a bibliography of up to 10 key papers covering mechanistic interpretability, circuit discovery in transformers, sparse autoencoders, and code understanding models. The review should contextualize the CSP-Atlas findings within the broader field. Building on Efe's and Asha's earlier literature review work.
+
+## Links
+
+- [CSP-Atlas on GitHub](https://github.com/piotrwilam/CSP-Atlas)
+- [CSP-Ablation-Project on GitHub](https://github.com/piotrwilam/CSP-Ablation-Project)
+- [CSP-Atlas on HuggingFace](https://huggingface.co/CSP-Atlas)
+- [CSP-Ablation-Project artifacts on HuggingFace](https://huggingface.co/piotrwilam/CSP-Ablation-Project)
+- [openai/circuit-sparsity model](https://huggingface.co/openai/circuit-sparsity)
