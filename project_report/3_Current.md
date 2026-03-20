@@ -16,6 +16,8 @@ Active areas of investigation. The purpose of this work is understanding univers
 
 6. **Literature review** (Efe + Asha) — Compile a bibliography of up to 10 key papers covering mechanistic interpretability, circuit discovery in transformers, sparse autoencoders, and code understanding models. The review should contextualize the CSP-Atlas findings within the broader field. Building on Efe's and Asha's earlier literature review work.
 
+7. **Report visualizations** — Generate and save plots to visually support the four findings. Most already exist in notebooks 3A and 4; they need to be run and exported. Key plots: marginalization convergence curves (Finding 1), modularity histogram split by AST/builtin (Finding 2), layer evolution line chart (Finding 3), E_I histogram and Jaccard heatmaps (Finding 4), combined heatmap of all circuits × layers (cross-finding).
+
 ## Links
 
 - [CSP-Atlas on GitHub](https://github.com/piotrwilam/CSP-Atlas)
