@@ -261,7 +261,7 @@ The CSP-Atlas project developed a systematic pipeline: generate controlled promp
 
 **Architecture and results:** 43 AST nodes × 63 builtins → 1,276 pairs × 50 prompts = 63,800 total prompts. All prompts AST-verified, quality-filtered by sequence loss.
 
-**Conclusion:** The controlled variance approach successfully produced a dataset suitable for circuit extraction. See [2_Final_Report_Draft.md](2_Final_Report_Draft.md), Section 2.
+**Conclusion:** The controlled variance approach successfully produced a dataset suitable for circuit extraction. See [2_Findings.md](2_Findings.md), Section 2.
 
 ---
 
@@ -269,10 +269,10 @@ The CSP-Atlas project developed a systematic pipeline: generate controlled promp
 
 The core CSP-Atlas experiments — extraction, binarization, marginalization, evaluation, and modularity scoring — are documented in detail in the findings and current research documents:
 
-- **Universal circuit extraction and genuineness** → [2_Final_Report_Draft.md](2_Final_Report_Draft.md), Finding 1
-- **Modularity and the AST/builtin asymmetry** → [2_Final_Report_Draft.md](2_Final_Report_Draft.md), Finding 2
-- **Layer architecture and the inverted-U pattern** → [2_Final_Report_Draft.md](2_Final_Report_Draft.md), Finding 3
-- **Compositionality and the Entanglement Index** → [2_Final_Report_Draft.md](2_Final_Report_Draft.md), Finding 4
+- **Universal circuit extraction and genuineness** → [2_Findings.md](2_Findings.md), Finding 1
+- **Modularity and the AST/builtin asymmetry** → [2_Findings.md](2_Findings.md), Finding 2
+- **Layer architecture and the inverted-U pattern** → [2_Findings.md](2_Findings.md), Finding 3
+- **Compositionality and the Entanglement Index** → [2_Findings.md](2_Findings.md), Finding 4
 - **Active research (ablation, SAE, analytical tools, visualizations, thresholds)** → [3_Current.md](3_Current.md)
 
 ---

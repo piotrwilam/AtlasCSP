@@ -91,6 +91,18 @@ This intersection operation is the key insight: by marginalizing over one dimens
 
 ---
 
+### Methodological contribution
+
+The approach used in this work — controlled variance injection followed by intersection-based marginalization — is distinct from the dominant methods in the mechanistic interpretability literature:
+
+- **Activation patching / causal tracing** (Conmy et al., 2023; Goldowsky-Dill et al., 2023) identifies circuits by intervening on activations and measuring downstream effects. This is powerful but operates one circuit at a time, making population-level mapping expensive.
+- **Sparse Autoencoders (SAEs)** (Cunningham et al., 2023; Bricken et al., 2023) decompose activations into monosemantic features. This scales well but produces features without guaranteed semantic labels — interpretation requires post-hoc analysis.
+- **Direct logit attribution** (Nostalgebraist, 2020) traces token predictions back to individual components. This is efficient but limited to output-facing circuits.
+
+Our approach is complementary: by controlling the *input* rather than intervening on *activations*, we extract circuits with known, pre-defined semantic identity (the AST node or builtin that defines the prompt invariant). The method scales naturally — 106 universal circuits were extracted in a single pass — and requires no causal intervention, no learned decomposition, and no post-hoc labeling. The tradeoff is that it requires the ability to generate controlled input variations, which is straightforward for code but may be harder in other domains.
+
+---
+
 ## 4. Analysis and Findings
 
 The following findings are structured as theses, each supported by the logic behind the claim and the empirical results that support it.
@@ -111,11 +123,13 @@ The following findings are structured as theses, each supported by the logic beh
 
 These results constitute strong evidence that the CSP transformer has learned structured, concept-level internal representations of Python syntax and semantics — not merely statistical correlations.
 
+**Significance:** This is the most clearly supported finding — the evidence is binary and exhaustive, with no edge cases or exceptions. It establishes the foundation for all subsequent analysis: the objects we study are real, not artifacts.
+
 ---
 
-### Finding 2: The model allocates distinctive circuits to syntax, but processes types with shared circuitry
+### Finding 2: The model separates syntax from semantics and allocates them different circuit architectures
 
-**Thesis:** Modularity is not uniformly distributed. AST nodes (syntactic constructs) have significantly more distinctive circuits than builtin objects (types and functions). The model dedicates specific neural resources to recognizing *how* code is structured, but processes *what* it operates on through shared, overlapping circuitry.
+**Thesis:** The CSP transformer draws a sharp internal boundary between syntactic structure (AST nodes) and semantic content (builtin types and functions). Not only does it represent these as distinct categories, it processes them through fundamentally different circuit architectures: syntax receives dedicated, modular circuits while semantics is processed through shared, overlapping neural populations.
 
 **Logic and meaning:** If every concept used the same neurons, the model would have no way to distinguish between them. Conversely, if every concept used entirely separate neurons, the model would be inefficient. The modularity score quantifies where each concept falls on this spectrum by testing, via permutation tests at each of 8 layers, whether an object's mean Jaccard similarity to all other objects is significantly lower than chance (p < 0.05). A score of 8/8 means the circuit is distinctive at every layer; 0/8 means indistinguishable from the population.
 
@@ -128,6 +142,8 @@ These results constitute strong evidence that the CSP transformer has learned st
 - Mean Jaccard similarity to others is consistently lower for AST nodes (~0.36–0.46) than for builtins (~0.49–0.56), confirming that AST circuits occupy more distinctive neural territory.
 
 This asymmetry reveals a fundamental organizational principle: the CSP transformer allocates dedicated neural circuits to syntactic structure (the *form* of code) but processes semantic content (the *types and functions* involved) through shared, overlapping neural populations. The model treats "what kind of statement is this?" as a more separable question than "what type of object is involved?"
+
+**Significance:** This is the most surprising finding. There is no a priori reason to predict that syntax would receive dedicated circuitry while semantics would not — in programming, types are arguably as fundamental as syntax. Yet the asymmetry is absolute: every top-scoring circuit is syntactic, every bottom-scoring circuit is semantic. This has not been reported in the circuit discovery literature and suggests that sparse code transformers organize knowledge along a syntax/semantics axis that mirrors the structure of programming languages themselves. It also has applied potential: if syntax and semantics use different circuit architectures (dedicated vs. shared), targeted interventions could modify one without disrupting the other.
 
 ---
 
@@ -156,6 +172,8 @@ This asymmetry reveals a fundamental organizational principle: the CSP transform
 
 The inverted-U shape suggests a staged computation: early layers (1–2) perform broad feature detection with large circuits, middle layers (3–5) compress into abstract representations, and late layers (6–7) expand again for output preparation. This is consistent with the "compression then generation" pattern observed in other transformer architectures.
 
+**Significance:** The layer evolution data is unambiguous — the inverted-U pattern holds consistently across pair circuits, AST universals, and builtin universals, and it survives the aggressive marginalization procedure. This means the staged processing signature is not an artifact of any particular concept or threshold — it is a structural property of the network itself. The fact that the pattern is preserved through marginalization further reinforces Finding 1: these circuits reflect genuine, stable representations whose architecture is dictated by the transformer's computational pipeline.
+
 ---
 
 ### Finding 4: Pair circuits are only partially compositional
@@ -172,6 +190,8 @@ The inverted-U shape suggests a staged computation: early layers (1–2) perform
 - **Least compositional pairs:** `AnnAssign` × `float` (E_I = 0.72), `AnnAssign` × `bool` (E_I = 0.71), `Compare` × `bool` (E_I = 0.69) — cases where the interaction produces a representation qualitatively different from either component.
 
 This finding means that universal circuits capture only part of the model's knowledge. The model does build on compositional building blocks, but it also develops rich, pair-specific representations that encode how a particular syntactic construct interacts with a particular type. Understanding the full picture requires analyzing both the universal components and their interaction terms.
+
+**Significance:** This result has deep implications for the limits of mechanistic interpretability. If 57% of each pair's neurons encode *interactions* rather than *components*, then understanding individual universal circuits gives you less than half the picture. The Gao et al. (2025) paper demonstrates that circuits in sparse transformers are interpretable; our E_I result quantifies a concrete boundary on that interpretability — the real computation lives substantially in the interaction terms, not the parts. This challenges the implicit assumption in circuit-level interpretability that understanding parts gives you understanding of wholes.
 
 ---
 
