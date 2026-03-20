@@ -91,7 +91,7 @@ For efficiency, prompts are processed in batches of 64 using GPU parallelism, wi
 
 Raw activations are converted to binary masks through a two-step process:
 
-1. **Epsilon thresholding** — A neuron is considered "active" for a given prompt if its absolute activation exceeds a threshold ε. Three epsilon values are used to test robustness: ε = 0.5 (strong signal), ε = 0.1 (medium), and ε = 0.05 (sensitive).
+1. **Epsilon thresholding** — A neuron is considered "active" for a given prompt if its absolute activation exceeds a threshold ε (set to 0.001 in this report).
 
 2. **Consistency filtering** — Across all 100 prompt variations for a pair, the *consistency score* of each neuron is the fraction of prompts where it was active. Only neurons exceeding a consistency threshold (typically 0.8, meaning the neuron fired in at least 80 of 100 prompts) are retained. This removes neurons that fire sporadically.
 
@@ -137,7 +137,6 @@ The following findings are structured as theses, each supported by the logic beh
 
 - **100% survival rate.** From 1,276 (AST, builtin) pairs, all 43 AST nodes and all 63 builtin objects produced non-empty universal circuits (ε = 0.001, consistency ≥ 0.8). Not a single concept was lost through the marginalization process.
 - **Zero empty pair masks.** Out of 10,208 individual layer-level pair masks (1,276 pairs × 8 layers), every single one contained active neurons. The model dedicates neurons to every (AST, builtin) combination at every layer of the network.
-- **Robustness across thresholds.** Universal circuits persist across different epsilon thresholds (ε = 0.5, 0.1, 0.05, 0.001), showing that the result is not an artifact of a particular threshold choice.
 
 These results constitute strong evidence that the CSP transformer has learned structured, concept-level internal representations of Python syntax and semantics — not merely statistical correlations.
 
