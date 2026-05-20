@@ -17,7 +17,7 @@ import pytest
 # Allow running from repo root without installing the package
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from module1.concept_matrix import (
+from circuits.prompts.concept_matrix import (
     TEST_AST,
     TEST_BUILTINS,
     generate_concept_matrix,
@@ -25,8 +25,8 @@ from module1.concept_matrix import (
     get_builtin_objects,
     get_pairs_for_mode,
 )
-from module1.generators import ASTPromptGenerator
-from module1.variance_schema import DOMAINS
+from circuits.prompts.generators import ASTPromptGenerator
+from circuits.prompts.variance_schema import DOMAINS
 
 
 # ---------------------------------------------------------------------------
@@ -150,13 +150,24 @@ class TestASTPromptGenerator:
 # ---------------------------------------------------------------------------
 
 
+try:
+    import torch as _torch_check  # noqa: F401
+    import transformers as _transformers_check  # noqa: F401
+    import circuits.prompts.filters  # noqa: F401
+    _HAS_TORCH = True
+except ImportError:
+    _HAS_TORCH = False
+
+
+@pytest.mark.skipif(not _HAS_TORCH, reason="torch + transformers not installed")
 class TestPerplexityFilter:
+
     """Test PerplexityFilter behaviour without loading the real CSP model."""
 
     @pytest.fixture
     def mock_filter(self):
-        with patch("module1.filters.AutoTokenizer") as mock_tok_cls, \
-             patch("module1.filters.AutoModelForCausalLM") as mock_model_cls:
+        with patch("circuits.prompts.filters.AutoTokenizer") as mock_tok_cls, \
+             patch("circuits.prompts.filters.AutoModelForCausalLM") as mock_model_cls:
 
             # Tokenizer returns a dict-like object with input_ids of shape (1, 10)
             import torch
@@ -171,7 +182,7 @@ class TestPerplexityFilter:
             mock_model.return_value = mock_output
             mock_model_cls.from_pretrained.return_value = mock_model
 
-            from module1.filters import PerplexityFilter
+            from circuits.prompts.filters import PerplexityFilter
             f = PerplexityFilter.__new__(PerplexityFilter)
             f.device = "cpu"
             f.tokenizer = mock_tok
@@ -222,7 +233,7 @@ class TestPerplexityFilter:
 
 class TestPipelineSmoke:
     def test_run_pipeline_with_mock_components(self, tmp_path):
-        from module1.pipeline import run_pipeline
+        from circuits.prompts.pipeline import run_pipeline
 
         mock_gen = MagicMock()
         mock_gen.generate_batch.return_value = [

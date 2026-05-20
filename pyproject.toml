@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "csp-atlas"
+version = "0.1.0"
+description = "CSP-Atlas — Concept-Specific Neural Circuits in a Sparse Python Transformer"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Piotr Wilam", email = "piotr.wilam.25@ucl.ac.uk" }]
+keywords = ["mechanistic-interpretability", "code-models", "transformers", "sparse-transformer"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "numpy>=1.26,<3",
+    "scipy>=1.11,<2",
+    "matplotlib>=3.8,<4",
+    "h5py>=3.10,<4",
+    "pandas>=2.0,<3",
+    "openpyxl>=3.1,<4",
+    "hydra-core>=1.3,<2",
+    "omegaconf>=2.3,<3",
+    "pyarrow>=14,<22",
+    "tqdm>=4.66,<5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4,<9",
+    "pytest-cov>=4.1,<6",
+    "nbstripout>=0.7,<1",
+    "ruff>=0.4,<1",
+]
+extraction = [
+    # Used by extraction stage + §7 validation; not needed for analysis-only reruns.
+    "torch>=2.1,<3",
+    "transformers>=4.40,<5",
+    "huggingface_hub>=0.20,<1",
+    "scikit-learn>=1.4,<2",
+]
+
+[project.urls]
+Repository = "https://github.com/piotrwilam/CSP-Atlas"
+"Public release" = "https://github.com/piotrwilam/AtlasCSP"
+"Data" = "https://huggingface.co/CSP-Atlas"
+"Model" = "https://huggingface.co/openai/circuit-sparsity"
+
+[tool.setuptools.packages.find]
+include = ["csp_atlas*", "circuits*"]
+exclude = ["tests*", "notebooks*", "experiments*", "docs*", "project_report*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "requires_data: tests need the frozen artifacts at DATA_ROOT (skip on CI without them)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

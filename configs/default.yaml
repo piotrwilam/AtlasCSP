@@ -1,0 +1,23 @@
+# Global defaults shared by every experiment.
+#
+# Override at the command line:
+#   python experiments/figN_*.py figure=figureN_*
+
+paper: csp_atlas
+
+# Extraction-stage defaults — the v2 paper's main setting.
+extraction:
+  eps: 0.5
+  cons: 0.8
+
+# Resolved at runtime from CSP_ATLAS_DATA_ROOT env var; default in csp_atlas.paths.
+data_root: ${oc.env:CSP_ATLAS_DATA_ROOT, ${oc.env:HOME}/Data/CSP-Atlas}
+
+# Where the experiment writes its outputs. ${now} is filled in by Hydra.
+run_name: ${paper}_${figure.name}_${now:%y%m%d_%H%M%S}
+
+hydra:
+  run:
+    dir: results/${run_name}
+  job:
+    chdir: false
