@@ -1,9 +1,9 @@
 """Hugging Face Hub fallback for the CSP-Atlas dataset.
 
 When `CSP_ATLAS_DATA_ROOT/<file>` is absent locally, fetch it from
-`huggingface.co/datasets/CSP-Atlas` via `huggingface_hub.hf_hub_download`.
-Cached under `~/.cache/huggingface/`; once downloaded, subsequent calls
-are free.
+`huggingface.co/datasets/piotrwilam/AtlasCSP` via
+`huggingface_hub.hf_hub_download`. Cached under `~/.cache/huggingface/`;
+once downloaded, subsequent calls are free.
 
 Importing this module pulls in `huggingface_hub`, which is in the
 `extraction` extras — install via `uv pip install -e ".[extraction]"`.
@@ -16,11 +16,11 @@ from pathlib import Path
 
 from csp_atlas.paths import DATA_ROOT
 
-HF_DATASET_REPO_ID = "CSP-Atlas"
+HF_DATASET_REPO_ID = "piotrwilam/AtlasCSP"
 
 
 def fetch_from_hf(filename: str) -> Path:
-    """Download `filename` from the CSP-Atlas HF dataset if not local.
+    """Download `filename` from the AtlasCSP HF dataset if not local.
 
     Returns the local path to the file (either the existing one under
     DATA_ROOT, or the HF cache path).

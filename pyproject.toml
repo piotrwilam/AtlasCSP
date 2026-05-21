@@ -9,7 +9,7 @@ description = "CSP-Atlas — Concept-Specific Neural Circuits in a Sparse Python
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Piotr Wilam", email = "piotr.wilam.25@ucl.ac.uk" }]
+authors = [{ name = "Piotr Wilam", email = "piotrwilam@gmail.com" }]
 keywords = ["mechanistic-interpretability", "code-models", "transformers", "sparse-transformer"]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
@@ -50,10 +50,9 @@ extraction = [
 ]
 
 [project.urls]
-Repository = "https://github.com/piotrwilam/CSP-Atlas"
-"Public release" = "https://github.com/piotrwilam/AtlasCSP"
-"Data" = "https://huggingface.co/CSP-Atlas"
-"Model" = "https://huggingface.co/openai/circuit-sparsity"
+Repository = "https://github.com/piotrwilam/AtlasCSP"
+Data = "https://huggingface.co/datasets/piotrwilam/AtlasCSP"
+Model = "https://huggingface.co/openai/circuit-sparsity"
 
 [tool.setuptools.packages.find]
 include = ["csp_atlas*", "circuits*"]

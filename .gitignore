@@ -29,3 +29,7 @@ results/
 .idea/
 *.swp
 *~
+
+# Local-only: agent + style notes, not shipped in the public release.
+CLAUDE.md
+coding_guidelines.md
