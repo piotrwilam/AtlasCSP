@@ -1,0 +1,33 @@
+# @package _global_
+# Paper Figure 1: atomicity super-cluster via Ward hierarchical clustering at L5.
+#
+# Loads the 106 universal concept-only neuron sets at L5 (the paper's
+# reference layer for cluster structure), computes pairwise Jaccard,
+# applies Ward linkage on (1 − Jaccard), and renders a coloured dendrogram.
+# The atomicity super-cluster {Assert, Break, Continue, Import, ImportFrom, Pass}
+# emerges as a tight subtree.
+
+defaults:
+  - /default
+  - _self_
+
+figure:
+  name: figure1_atomicity_dendrogram
+
+# (ε, cons) cell for which to load the universal masks.
+eps: 0.5
+cons: 0.8
+
+# Layer to render. The atomicity 6-set clusters tightest at L3 (forms
+# an 8-member cluster with `Raise` and the `_isolated_` pipeline marker
+# under a 4-cluster cut). The v2 paper text says "layer 5"; that's
+# imprecise — at L5 the 6-set splits across 3 sub-clusters. v3 should
+# update §6 prose to L3, or pick a different cluster-cohesion metric.
+layer: 3
+
+# Threshold colours the dendrogram branches. null = scipy default
+# (0.7 × max distance). Set explicitly to tighten or relax the cut.
+color_threshold: null
+
+figsize: [14, 5]
+style: paper
